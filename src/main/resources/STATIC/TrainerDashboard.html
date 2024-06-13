@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Side-by-side Content Display</title>
+    <link rel="stylesheet" href="stylefortest.css">
+    <style>
+        * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    display: flex;
+}
+
+.sidebar {
+    width: 20%;
+    background-color: #f4f4f4;
+    padding: 20px;
+    height: 100vh;
+}
+
+.content {
+    width: 80%;
+    padding: 20px;
+}
+
+.content-section {
+    display: none;
+}
+
+button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="sidebar">
+        <button onclick="showContent('content1')">Change Password</button>
+        <button onclick="showContent('content2')">Add Student</button>
+        <button onclick="showContent('content3')">Create Test</button>
+
+    </div>
+    <div class="content">
+        <div id="content1" class="content-section">
+            <div class="container">
+                <h2>Password Change</h2>
+                <!-- Input field for old password -->
+                <input type="password" id="oldPassword" placeholder="Old Password" required>
+                <!-- Input field for new password -->
+                <input type="password" id="newPassword" placeholder="New Password" required>
+                <!-- Input field to confirm new password -->
+                <input type="password" id="confirmPassword" placeholder="Confirm New Password" required>
+                <!-- Confirm button -->
+                <button onclick="changePassword()">Confirm</button>
+            </div>
+        </div>
+
+        <div id="content2" class="content-section" style="display:none;">
+            <h1>Create Profile for Student</h1><br><br>
+            <form id="profileForm">
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="mobile">Mobile:</label>
+                    <input type="text" id="mobile" name="mobile" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <label for="batch">Batch:</label>
+                <select id="batch" name="batch" >
+                    <!-- Options will be populated dynamically -->
+                </select>
+
+
+                <button type="submit">Create</button>
+            </form>
+        </div>
+
+        <div id="content3" class="content-section" style="display:none;">
+            <h1>Create New Test</h1>
+            <form id="createTestForm">
+                <label for="testName">Test Name:</label>
+                <input type="text" id="testName" name="testName" required><br><br>
+
+                <label for="subject">Subject:</label>
+                <select id="subject" name="subject" >
+                    <!-- Options will be populated dynamically -->
+                </select><br><br>
+
+                <label for="conditions">Conditions:</label>
+                <textarea id="conditions" name="conditions" rows="4" required></textarea><br><br>
+
+                <label for="startTime">Start Time:</label>
+                <input type="datetime-local" id="startTime" name="startTime" required><br><br>
+
+                <label for="duration">Duration (in minutes):</label>
+                <input type="number" id="duration" name="duration" required><br><br>
+
+                <label for="testChaptersContainer">Test Chapters:</label><br>
+                <div id="testChaptersContainer">
+
+                    <!-- Test Chapters will be dynamically added here -->
+                </div>
+                <button type="button" id="addChapterBtn">Add Chapter</button><br><br>
+
+                <button type="submit">Create Test</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    function showContent(id) {
+    // Hide all content sections
+    document.querySelectorAll('.content-section').forEach((section) => {
+        section.style.display = 'none';
+    });
+
+    // Show the selected content section
+    const contentSection = document.getElementById(id);
+    if (contentSection) {
+        contentSection.style.display = 'block';
+    }
+}
+
+    // password reset script
+    function changePassword() {
+         // Fetch values from the form
+         var oldpassword = document.getElementById("oldPassword").value;
+         var newPassword = document.getElementById("newPassword").value;
+         var confirmPassword = document.getElementById("confirmPassword").value;
+
+         // Check if new password matches confirm password
+        if (newPassword !== confirmPassword) {
+            alert("New password and confirm password do not match");
+            return;
+        }
+
+        // Retrieve signed-in user's email from session
+        var userEmail = sessionStorage.getItem("userEmail");
+
+        // Construct the PUT request URL with the new password as a query parameter
+        var url = `http://localhost:8080/users/change-password/${userEmail}?newPassword=${newPassword}`;
+
+
+         const formData = {
+             password: oldpassword,
+             newPassword: newPassword
+         };
+
+         fetch(`http://localhost:8080/users/change-password/${userEmail}`, {
+             method: 'PUT',
+             headers: {
+                 'Content-Type': 'application/json',
+                 // Add any other headers as needed
+             },
+
+             body: JSON.stringify(formData),
+         })
+         .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            // Password changed successfully, clear input fields
+
+            alert("Password changed successfully");
+
+
+        })
+        .catch(error => {
+            console.error('Error changing password:', error);
+            alert("Error changing password");
+        });
+     }
+
+    function createUser(userType) {
+        // Redirect to UserSignUp.html with userType parameter
+        window.location.href = `UserSignUp.html?userType=${userType}`;
+    }
+
+    function addStudent() {
+        // Redirect to StudentProfile.html
+        window.location.href = "StudentProfile.html";
+    }
+
+    // script for adding new student
+
+    document.addEventListener("DOMContentLoaded", function() {
+
+    // Fetch subjects from backend and populate dropdown
+    fetch("http://localhost:8080/batches")
+        .then(response => response.json())
+        .then(batches => {
+            const batchDropdown = document.getElementById("batch");
+            batches.forEach(batch => {
+                const option = document.createElement("option");
+                option.value = batch.id;
+                option.textContent = batch.name;
+                batchDropdown.appendChild(option);
+            });
+        });
+
+
+        const profileForm = document.getElementById("profileForm");
+
+        profileForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            const data = {
+                name: formData.get('name'),
+                mobile: formData.get('mobile'),
+                email: formData.get('email'),
+                batch: {
+                    id: parseInt(formData.get('batch'))  // Ensure batch id is sent as a number
+                }
+            };
+
+
+            fetch("http://localhost:8080/students/create", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("Profile created successfully!");
+                    // Redirect or perform any other action
+                    profileForm.reset(); // Reset form fields to empty
+                } else {
+                    alert("Error creating profile.");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Error creating profile.");
+            });
+        });
+    });
+
+</script>
+<script src="ScriptForTestNew.js"></script>
+</body>
+</html>

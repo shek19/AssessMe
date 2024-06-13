@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Test</title>
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="datetime-local"],
+input[type="number"],
+textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+#testChaptersContainer {
+    margin-bottom: 10px;
+}
+
+.chapter {
+    margin-bottom: 10px;
+}
+
+.chapter input {
+    margin-right: 10px;
+}
+
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Create Test</h1>
+    <form id="createTestForm">
+        <label for="testName">Test Name:</label>
+        <input type="text" id="testName" name="testName" required><br><br>
+
+        <label for="subject">Subject:</label>
+        <select id="subject" name="subject" >
+            <!-- Options will be populated dynamically -->
+        </select><br><br>
+
+        <label for="conditions">Conditions:</label>
+        <textarea id="conditions" name="conditions" rows="4" required></textarea><br><br>
+
+        <label for="startTime">Start Time:</label>
+        <input type="datetime-local" id="startTime" name="startTime" required><br><br>
+
+        <label for="duration">Duration (in minutes):</label>
+        <input type="number" id="duration" name="duration" required><br><br>
+
+        <label for="testChaptersContainer">Test Chapters:</label><br>
+        <div id="testChaptersContainer">
+
+            <!-- Test Chapters will be dynamically added here -->
+        </div>
+        <button type="button" id="addChapterBtn">Add Chapter</button><br><br>
+
+        <button type="submit">Create Test</button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+    const addChapterBtn = document.getElementById("addChapterBtn");
+    const testChaptersContainer = document.getElementById("testChaptersContainer");
+
+    addChapterBtn.addEventListener("click", function() {
+        const chapterDiv = document.createElement("div");
+        chapterDiv.className = "chapter";
+
+/*
+        testChaptersContainer.innerHTML = `
+        <select id="chapters" name="chapters">
+            <!-- Options will be populated dynamically -->
+        </select>
+
+        <label for="easyQuestions">Easy Questions:</label>
+        <input type="number" id="easyQuestions" name="easyQuestions" required><br><br>
+
+        <label for="difficultQuestions">Difficult Questions:</label>
+        <input type="number" id="difficultQuestions" name="difficultQuestions" required><br><br>
+
+        <label for="complexQuestions">Complex Questions:</label>
+        <input type="number" id="complexQuestions" name="complexQuestions" required><br><br>
+        `;
+
+
+        // Create a select dropdown for chapters
+        const chapterDropdown = document.createElement('label');
+        chapterDropdown.textContent = 'Select Chapter :';
+        const chapterDropdownSelect = document.createElement("select");
+        chapterDropdownSelect.name = "chapter";
+        //chapterDropdownSelect.id = "chapter";
+        chapterDropdownSelect.required = true;
+*/
+
+
+
+/*
+        const chapterInput = document.createElement("input");
+        chapterInput.type = "text";
+        chapterInput.placeholder = "Chapter Name";
+        chapterInput.required = true;
+*/
+/*
+        testChaptersContainer.innerHTML = `
+        <select id="chapterDropdownSelect" name="chapterDropdownSelect">
+            <!-- Options will be populated dynamically -->
+        </select>
+        `;
+*/
+
+        const chapterDropdownSelect = document.createElement("select");
+        chapterDropdownSelect.name = "chapter";
+        chapterDropdownSelect.id = "chapterDropdownSelect";
+
+        // Call a function to populate the dropdown with chapters
+        populateChapterDropdown(chapterDropdownSelect);
+
+        const easyInput = document.createElement("input");
+        easyInput.type = "number";
+        easyInput.placeholder = "Easy Questions";
+        easyInput.required = true;
+
+        const difficultInput = document.createElement("input");
+        difficultInput.type = "number";
+        difficultInput.placeholder = "Difficult Questions";
+        difficultInput.required = true;
+
+        const complexInput = document.createElement("input");
+        complexInput.type = "number";
+        complexInput.placeholder = "Complex Questions";
+        complexInput.required = true;
+
+        chapterDiv.appendChild(chapterDropdownSelect);
+        chapterDiv.appendChild(easyInput);
+        chapterDiv.appendChild(difficultInput);
+        chapterDiv.appendChild(complexInput);
+
+        testChaptersContainer.appendChild(chapterDiv);
+    });
+
+    const createTestForm = document.getElementById("createTestForm");
+    createTestForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const formData = {
+            testName: document.getElementById("testName").value,
+            subject: { id: document.getElementById("subject").value },
+            conditions: document.getElementById("conditions").value,
+            startTime: document.getElementById("startTime").value,
+            durationInMinutes: parseInt(document.getElementById("duration").value),
+            testChapters: []
+        };
+
+        const chapterDivs = document.querySelectorAll(".chapter");
+        chapterDivs.forEach(chapterDiv => {
+            const chapterName = chapterDiv.querySelector("select").value;
+            // const chapterName = chapterDiv.querySelector("input[type='text']").value;
+            const easyQuestions = parseInt(chapterDiv.querySelector("input[type='number'][placeholder='Easy Questions']").value);
+            const difficultQuestions = parseInt(chapterDiv.querySelector("input[type='number'][placeholder='Difficult Questions']").value);
+            const complexQuestions = parseInt(chapterDiv.querySelector("input[type='number'][placeholder='Complex Questions']").value);
+
+            const testChapter = {
+                // chapter: { name: chapterName },
+                chapter: { id: chapterName },
+                easyQuestions: easyQuestions,
+                difficultQuestions: difficultQuestions,
+                complexQuestions: complexQuestions
+            };
+
+            formData.testChapters.push(testChapter);
+        });
+
+        console.log(formData);
+
+        // Send formData to backend API (e.g., using fetch)
+        fetch("http://localhost:8080/tests/create", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Test created:", data);
+            alert("Test created successfully!");
+        })
+        .catch(error => {
+            console.error("Error creating test:", error);
+            alert("Error creating test.");
+        });
+    });
+
+    // Fetch subjects from backend and populate dropdown
+    fetch("http://localhost:8080/subjects")
+        .then(response => response.json())
+        .then(subjects => {
+            const subjectDropdown = document.getElementById("subject");
+            subjects.forEach(subject => {
+                const option = document.createElement("option");
+                option.value = subject.id;
+                option.textContent = subject.name;
+                subjectDropdown.appendChild(option);
+            });
+        });
+
+    // Update chapters dropdown when subject selection changes
+    document.getElementById("subject").addEventListener("change", function() {
+        const subjectId = this.value;
+        fetch(`http://localhost:8080/subjects/${subjectId}/chapters`)
+            .then(response => response.json())
+            .then(chapters => {
+                const chaptersDropdown = document.getElementById("chapterDropdownSelect");
+
+                //const chaptersDropdown = document.getElementById("chapters");
+                chaptersDropdown.innerHTML = "";
+                chapters.forEach(chapter => {
+                    const option = document.createElement("option");
+                    option.value = chapter.id;
+                    option.textContent = chapter.name;
+                    chaptersDropdown.appendChild(option);
+                });
+            });
+    });
+    // Function to populate the chapter dropdown with options
+    function populateChapterDropdown(chapterDropdownSelect) {
+    const subjectId = document.getElementById("subject").value;
+
+    fetch(`http://localhost:8080/subjects/${subjectId}/chapters`)
+        .then(response => response.json())
+        .then(chapters => {
+            // Clear existing options before populating
+            chapterDropdownSelect.innerHTML = "";
+
+            chapters.forEach(chapter => {
+                const option = document.createElement("option");
+                option.value = chapter.id;
+                option.textContent = chapter.name;
+                chapterDropdownSelect.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error("Error fetching chapters:", error);
+        });
+}
+});
+
+
+</script>
+</body>
+</html>

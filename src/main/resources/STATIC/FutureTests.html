@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trainer Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        .exam {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Welcome, Trainer</h1>
+    <h2>Upcoming Exams</h2>
+    <div id="examsContainer"></div>
+</div>
+
+<script>
+    // Function to fetch upcoming exams
+    function fetchExams() {
+        fetch('http://localhost:8080/upcoming-tests', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('accessToken'),
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(exams => {
+            const examsContainer = document.getElementById('examsContainer');
+            if (exams.length === 0) {
+                examsContainer.textContent = 'No upcoming exams.';
+            } else {
+                exams.forEach(exam => {
+                    const examElement = document.createElement('div');
+                    examElement.classList.add('exam');
+
+                    // Display exam details
+                    examElement.innerHTML = `
+                        <h3>${exam.testName}</h3>
+                        <p>Chapter: ${exam.testChapters && Array.isArray(exam.testChapters) ? exam.testChapters.map(chapter => chapter.chapterName).join(', ') : 'N/A'}</p>
+                        <p>Date: ${exam.startTime}</p>
+                        <p>Duration: ${exam.durationInMinutes} minutes</p>
+                        <button onclick="renderAssignStudentsForm(${exam.id})">Assign</button>
+                    `;
+                    examsContainer.appendChild(examElement);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching exams:', error);
+            const examsContainer = document.getElementById('examsContainer');
+            examsContainer.textContent = 'Error fetching exams. Please try again later.';
+        });
+    }
+
+    // Function to render the assign students form
+    function renderAssignStudentsForm(examId) {
+        const formHTML = `
+            <h1>Assign Students for Test</h1>
+            <div>
+                <label for="selectBatch">Select Batch:</label>
+                <select id="selectBatch"></select>
+            </div>
+            <div id="studentsContainer">
+                <h3>Select Students:</h3>
+                <div class="checkbox-container" id="selectStudents"></div>
+                <label>
+                    <input type="checkbox" id="selectAllStudents"> Select All
+                </label>
+            </div>
+            <button onclick="assignStudents(${examId})">Assign Students</button>
+        `;
+
+        // Replace examsContainer content with the assign students form
+        const examsContainer = document.getElementById('examsContainer');
+        examsContainer.innerHTML = formHTML;
+
+        // Fetch all batches and populate the dropdown
+        fetch('http://localhost:8080/batches')
+            .then(response => response.json())
+            .then(data => {
+                const selectBatch = document.getElementById('selectBatch');
+                data.forEach(batch => {
+                    const option = document.createElement('option');
+                    option.value = batch.id;
+                    option.textContent = batch.name;
+                    selectBatch.appendChild(option);
+                });
+            });
+
+        // Fetch students for selected batch and populate the students checkbox container
+        document.getElementById('selectBatch').addEventListener('change', () => {
+            const batchId = document.getElementById('selectBatch').value;
+            const selectStudentsContainer = document.getElementById('selectStudents');
+            selectStudentsContainer.innerHTML = ''; // Clear previous options
+
+            fetch(`http://localhost:8080/batches/${batchId}/students`)
+                .then(response => response.json())
+                .then(students => {
+                    students.forEach(student => {
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.name = 'student';
+                        checkbox.value = student.id;
+                        checkbox.id = `student_${student.id}`;
+
+                        const label = document.createElement('label');
+                        label.htmlFor = `student_${student.id}`;
+                        label.textContent = student.name;
+
+                        const div = document.createElement('div');
+                        div.appendChild(checkbox);
+                        div.appendChild(label);
+
+                        selectStudentsContainer.appendChild(div);
+                    });
+                });
+        });
+
+        // Select all students when "Select All" checkbox is clicked
+        document.getElementById('selectAllStudents').addEventListener('change', (event) => {
+            const checkboxes = document.querySelectorAll('[name="student"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = event.target.checked;
+            });
+        });
+    }
+
+    // Function to assign selected students for the test
+    function assignStudents(examId) {
+        const selectedBatchId = document.getElementById('selectBatch').value;
+        const selectedStudentIds = Array.from(document.querySelectorAll('[name="student"]:checked'))
+                                       .map(checkbox => checkbox.value);
+
+        // Prepare data to send to the backend
+        const data = {
+            examId: examId,
+            batchId: selectedBatchId,
+            studentIds: selectedStudentIds
+        };
+
+        // Make POST request to assign students
+        fetch('http://localhost:8080/tests/assign-students', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Students assigned successfully!');
+            } else {
+                alert('Failed to assign students. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        });
+    }
+
+    // Call fetchExams function when the dashboard page loads
+    window.onload = fetchExams;
+
+</script>
+</body>
+</html>

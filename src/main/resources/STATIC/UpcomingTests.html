@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trainer Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        .exam {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .exam h3 {
+            margin-top: 0;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 10px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Welcome, Trainer</h1>
+    <h2>Upcoming Exams</h2>
+    <div id="examsContainer"></div>
+</div>
+
+<script>
+    // Fetch upcoming exams created by the current trainer
+    function fetchExams() {
+        fetch('http://localhost:8080/upcoming-tests', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('accessToken'), // Include access token for authentication
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(exams => {
+            const examsContainer = document.getElementById('examsContainer');
+            if (exams.length === 0) {
+                examsContainer.textContent = 'No upcoming exams.';
+            } else {
+                exams.forEach(exam => {
+                    const examElement = document.createElement('div');
+                    examElement.classList.add('exam');
+
+                    // Handle testChapters array
+                    let chaptersText = 'N/A';
+                    if (Array.isArray(exam.testChapters) && exam.testChapters.length > 0) {
+                        chaptersText = exam.testChapters.map(chapter => chapter.chapterName).join(', ');
+                    }
+
+                    examElement.innerHTML = `
+                        <h3>${exam.testName}</h3>
+                        <p>Chapter: ${chaptersText}</p>
+                        <p>Date: ${exam.startTime}</p>
+                        <p>Duration: ${exam.durationInMinutes} minutes</p>
+                        <button class="button" onclick="assignBatch('${exam.testId}')">Assign Batch</button>
+                    `;
+                    examsContainer.appendChild(examElement);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching exams:', error);
+            const examsContainer = document.getElementById('examsContainer');
+            examsContainer.textContent = 'Error fetching exams. Please try again later.';
+        });
+    }
+
+    // Function to handle Assign Batch button click
+    function assignBatch(testId) {
+        window.location.href = `AssignStudentsForTest.html?testId=${testId}`;
+    }
+
+    // Call fetchExams function when the dashboard page loads
+    window.onload = fetchExams;
+</script>
+</body>
+</html>

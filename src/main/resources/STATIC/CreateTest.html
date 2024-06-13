@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Test</title>
+    <link rel="stylesheet" href="stylefortest.css">
+</head>
+<body>
+<h1>Create New Test</h1>
+<form id="createTestForm">
+    <label for="testName">Test Name:</label>
+    <input type="text" id="testName" name="testName" required><br><br>
+
+    <label for="subject">Subject:</label>
+    <select id="subject" name="subject" >
+        <!-- Options will be populated dynamically -->
+    </select><br><br>
+
+    <label for="chapters">Chapters:</label>
+    <select id="chapters" name="chapters">
+        <!-- Options will be populated dynamically -->
+    </select><br><br>
+
+    <label for="conditions">Conditions:</label>
+    <textarea id="conditions" name="conditions" required></textarea><br><br>
+
+    <label for="easyQuestions">Easy Questions:</label>
+    <input type="number" id="easyQuestions" name="easyQuestions" required><br><br>
+
+    <label for="difficultQuestions">Difficult Questions:</label>
+    <input type="number" id="difficultQuestions" name="difficultQuestions" required><br><br>
+
+    <label for="complexQuestions">Complex Questions:</label>
+    <input type="number" id="complexQuestions" name="complexQuestions" required><br><br>
+
+    <label for="startTime">Start Time:</label>
+    <input type="datetime-local" id="startTime" name="startTime" required><br><br>
+
+    <label for="testDuration">Test Duration (minutes):</label>
+    <input type="number" id="testDuration" name="testDuration" required><br><br>
+
+    <button type="submit" id="createTestBtn">Create Test</button>
+</form>
+
+<script src="scriptfortest.js"></script>
+</body>
+</html>

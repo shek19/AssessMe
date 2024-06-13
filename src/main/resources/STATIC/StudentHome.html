@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Home</title>
+    <style>
+        /* styles.css */
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 100px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .exam {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .exam h3 {
+            margin-top: 0;
+        }
+
+        .exam button {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Welcome Student!</h1><br><br>
+    <!--<button id="createProfileBtn">Create Profile</button> -->
+    <div id="examsContainer"></div>
+</div>
+
+<script>
+    // Fetch upcoming exams created by the current trainer
+    function fetchExams() {
+        fetch('http://localhost:8080/upcoming-tests', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('accessToken'), // Include access token for authentication
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(exams => {
+            const examsContainer = document.getElementById('examsContainer');
+            examsContainer.innerHTML = ''; // Clear existing content
+            if (exams.length === 0) {
+                examsContainer.textContent = 'No upcoming exams.';
+            } else {
+                exams.forEach(exam => {
+                    const examElement = document.createElement('div');
+                    examElement.classList.add('exam');
+
+                    // Handle testChapters array
+                    let chaptersText = 'N/A';
+                    if (Array.isArray(exam.testChapters) && exam.testChapters.length > 0) {
+                        chaptersText = exam.testChapters.map(chapter => chapter.chapterName).join(', ');
+                    }
+
+                    examElement.innerHTML = `
+                        <h3>${exam.testName}</h3>
+                        <p>Date: ${new Date(exam.startTime).toLocaleString()}</p>
+                        <p>Duration: ${exam.durationInMinutes} minutes</p>
+                        <button onclick="startExam(${exam.id})">Start Exam</button>
+                    `;
+                    examsContainer.appendChild(examElement);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching exams:', error);
+            const examsContainer = document.getElementById('examsContainer');
+            examsContainer.textContent = 'Error fetching exams. Please try again later.';
+        });
+    }
+
+    // Start exam function
+    function startExam(examId) {
+        // Redirect to QuestionPaper.html with examId as a query parameter
+        window.location.href = `QuestionPaper.html?examId=${examId}`;
+    }
+
+    // Call fetchExams function when the dashboard page loads
+    window.onload = fetchExams;
+</script>
+</body>
+</html>
